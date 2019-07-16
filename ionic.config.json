@@ -1,5 +1,8 @@
 {
   "name": "tabs",
-  "integrations": {},
-  "type": "angular"
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular",
+  "id": "dc388203"
 }
