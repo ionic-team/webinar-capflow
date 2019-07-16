@@ -26,6 +26,7 @@
     "@ionic/angular": "^4.1.0",
     "cordova-android": "^8.0.0",
     "cordova-ios": "^5.0.1",
+    "cordova-plugin-ionic": "^5.4.0",
     "core-js": "^2.5.4",
     "rxjs": "~6.5.1",
     "tslib": "^1.9.0",
@@ -71,7 +72,15 @@
       "cordova-plugin-device": {},
       "cordova-plugin-splashscreen": {},
       "cordova-plugin-ionic-webview": {},
-      "cordova-plugin-ionic-keyboard": {}
+      "cordova-plugin-ionic-keyboard": {},
+      "cordova-plugin-ionic": {
+        "APP_ID": "dc388203",
+        "CHANNEL_NAME": "Master",
+        "UPDATE_METHOD": "background",
+        "MAX_STORE": "2",
+        "MIN_BACKGROUND_DURATION": "30",
+        "UPDATE_API": "https://api.ionicjs.com"
+      }
     },
     "platforms": [
       "ios",
