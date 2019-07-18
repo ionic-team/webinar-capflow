@@ -1,0 +1,7 @@
+{
+  "appId": "io.ionic.webinars.capflow.capacitor",
+  "appName": "Capflow - Capacitor",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www"
+}

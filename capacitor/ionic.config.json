@@ -1,7 +1,8 @@
 {
   "name": "Capflow - Cordova",
   "integrations": {
-    "cordova": {}
+    "cordova": {},
+    "capacitor": {}
   },
   "type": "angular",
   "id": "dc388203"
