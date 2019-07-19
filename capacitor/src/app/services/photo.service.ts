@@ -4,6 +4,8 @@ import { File } from '@ionic-native/file/ngx';
 import { WebView } from '@ionic-native/ionic-webview/ngx';
 import { Storage } from '@ionic/storage';
 
+import { Plugins, FilesystemDirectory, FileReadResult, Filesystem } from '@capacitor/core';
+
 const PHOTO_STORAGE: string = "photos";
 
 @Injectable({
@@ -23,56 +25,67 @@ export class PhotoService {
   }
 
   // Open the device's camera, take a picture, then save it to the filesystem.
-  takePicture() {
+  async takePicture() {
     const options: CameraOptions = {
       quality: 100,
       destinationType: this.camera.DestinationType.FILE_URI,
       encodingType: this.camera.EncodingType.JPEG,
       mediaType: this.camera.MediaType.PICTURE
     }
+
+    const capturedTempImage = await this.camera.getPicture(options);
     
-    // The following Example filepaths are from iOS - Android paths will be slightly different.
-    this.camera.getPicture(options).then((capturedTempImage) => {
-      // Captured image from the device, currently stored in a temp directory
-      // Example: file:///var/mobile/Containers/Data/Application/E4A79B4A-E5CB-4E0C-A7D9-0603ECD48690/tmp/cdv_photo_003.jpg
+    const savedImageFile = await this.savePicture(capturedTempImage);
 
-      // Save picture to a file on device
-      const tempFilename = capturedTempImage.substr(capturedTempImage.lastIndexOf('/') + 1);
-      // Example: cdv_photo_003.jpg
-      const tempBaseFilesystemPath = capturedTempImage.substr(0, capturedTempImage.lastIndexOf('/') + 1);
-      // Example: file:///var/mobile/Containers/Data/Application/E4A79B4A-E5CB-4E0C-A7D9-0603ECD48690/tmp/
+    // todo: figure out better webview path
+    const webviewPath = savedImageFile.replace("file://", "capacitor-asset://");
+    
+    // capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/63F50461-1A9D-4A8A-AD7C-FF5DE4DD204C/Documents/1563569873622.jpeg
+    console.log(this.webview.convertFileSrc(savedImageFile));
 
-      const newBaseFilesystemPath = this.file.dataDirectory;
-      // Example: file:///var/mobile/Containers/Data/Application/E4A79B4A-E5CB-4E0C-A7D9-0603ECD48690/Library/NoCloud/
-
-      // Save picture to filesystem by copying it from temp storage to permanent file storage.
-      // There are other methods to save files, but this is the simplest.
-      // Same filename, different path (temp => filesystem).
-      this.file.copyFile(tempBaseFilesystemPath, tempFilename, newBaseFilesystemPath, tempFilename); 
-
-      // Add new photo to gallery
-      const newImageFile = newBaseFilesystemPath + tempFilename;
-      // Example: file:///var/mobile/Containers/Data/Application/E4A79B4A-E5CB-4E0C-A7D9-0603ECD48690/Library/NoCloud/cdv_photo_003.jpg
-
-      // Rewrite from a device filepath (file:// protocol) to the local HTTP server (https:// protocol) hosting this Ionic app by using the 
-      // WebView provided "this.webview.convertFileSrc(filepath)" method. 
-      // Without this, we would get a "Not allowed to load local resource" error when trying to display this image to the app user 
-      // on the Tab 2 page (tab2.page.html):
-      // <ion-img src="{{ photo.webviewPath }}"
-      //
-      // More details: https://ionicframework.com/docs/building/webview#file-protocol
-      // Example: ionic://localhost/_app_file_/var/mobile/Containers/Data/Application/E4A79B4A-E5CB-4E0C-A7D9-0603ECD48690/tmp/cdv_photo_003.jpg
-      this.photos.unshift({
-        filepath: newImageFile,
-        webviewPath: this.webview.convertFileSrc(newImageFile)
-      });
-
-      // Cache all photo data for future retrieval
-      this.storage.set(PHOTO_STORAGE, this.photos);
-    }, (err) => {
-      // Handle error
-      console.log("Camera issue: " + err);
+    this.photos.unshift({
+      filepath: savedImageFile,
+      webviewPath: this.webview.convertFileSrc(savedImageFile)
     });
+
+    // Cache all photo data for future retrieval
+    this.storage.set(PHOTO_STORAGE, this.photos);
+  }
+
+  // Save picture to file on device
+  async savePicture(cameraImage) {
+    const { Filesystem } = Plugins;
+
+    // Read the file into its base64 version
+    let readFile: FileReadResult;
+    try {
+      readFile = await Filesystem.readFile({
+        path: cameraImage
+      });
+    } catch (e) {
+      console.error("unable to read file: ", e);
+    }
+
+    // Write the file to the data directory (instead of temp storage)
+    let fileName = new Date().getTime() + '.jpeg';
+    try {
+      await Filesystem.writeFile({
+        path: fileName,
+        data: readFile.data,
+        directory: FilesystemDirectory.Data
+      });
+    } catch(e) {
+      console.error('Unable to write file', e);
+    }
+
+    // Example:
+    // file:///var/mobile/Containers/Data/Application/3688D7F2-3168-4275-B7EB-696FE0485852/Documents/1563565757167.jpeg
+    const fileUri = await Filesystem.getUri({
+      directory: FilesystemDirectory.Data,
+      path: fileName
+    });
+
+    return fileUri.uri;
   }
 
   // Delete picture by removing it from reference data and the filesystem
@@ -82,10 +95,12 @@ export class PhotoService {
     await this.storage.set(PHOTO_STORAGE, this.photos);
 
     // delete photo file
-    const photoToDelete = photo.filepath;
-    const baseFilesystemPath = photoToDelete.substr(0, photoToDelete.lastIndexOf('/') + 1);
-    const filename = photoToDelete.substr(photoToDelete.lastIndexOf('/') + 1);
-    await this.file.removeFile(baseFilesystemPath, filename);
+    const filename = photo.filepath.substr(photo.filepath.lastIndexOf('/') + 1);
+
+    await Filesystem.deleteFile({
+      path: filename,
+      directory: FilesystemDirectory.Data
+    });
   }
 }
 

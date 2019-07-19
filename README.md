@@ -24,6 +24,8 @@ The Capacitor version:
 The Cordova version of the app is under the `cordova/` folder.
 You guessed it! The Capacitor version is under the `capacitor/` folder.
 
+Tab 2 (`src/app/tab2` folder) has been modified to become a Photo Gallery. `PhotoService` (`src/app/services/photo.service.ts`) contains all logic to take pictures, write files, and store data.
+
 ## How to Run
 
 SOON
