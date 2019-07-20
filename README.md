@@ -13,7 +13,7 @@ The Cordova version (iOS, Android):
 
 * Taking pictures: [Ionic Native/Cordova Camera plugin](https://ionicframework.com/docs/native/camera)
 * Saving files to the device: [Ionic Native/Cordova File plugin](https://ionicframework.com/docs/native/file)
-* Caching app data: [Ionic Storage plugin](https://ionicframework.com/docs/building/storage)
+* Caching app data: [Ionic Storage plugin](https://ionicframework.com/docs/building/storage) along with the Cordova [SQLite Storage plugin](https://www.npmjs.com/package/cordova-plugin-sqlite)
 
 The Capacitor version:
 
@@ -23,6 +23,8 @@ The Capacitor version:
 
 The Cordova version of the app is under the `cordova/` folder.
 You guessed it! The Capacitor version is under the `capacitor/` folder.
+
+Tab 2 (`src/app/tab2` folder) has been modified to become a Photo Gallery. `PhotoService` (`src/app/services/photo.service.ts`) contains all logic to take pictures, write files, and store data.
 
 ## How to Run
 
