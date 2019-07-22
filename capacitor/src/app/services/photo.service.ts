@@ -4,9 +4,10 @@ import { File } from '@ionic-native/file/ngx';
 import { WebView } from '@ionic-native/ionic-webview/ngx';
 import { Storage } from '@ionic/storage';
 
-import { Plugins, FilesystemDirectory, FileReadResult, Filesystem } from '@capacitor/core';
+import { Capacitor, Plugins, FilesystemDirectory, FileReadResult } from '@capacitor/core';
 
 const PHOTO_STORAGE: string = "photos";
+const { Filesystem } = Plugins;
 
 @Injectable({
   providedIn: 'root'
@@ -35,17 +36,15 @@ export class PhotoService {
 
     const capturedTempImage = await this.camera.getPicture(options);
     
+    // Result example: file:///var/mobile/Containers/Data/Application/E4A79B4A-E5CB-4E0C-A7D9-0603ECD48690/tmp/cdv_photo_003.jpg
     const savedImageFile = await this.savePicture(capturedTempImage);
-
-    // todo: figure out better webview path
-    const webviewPath = savedImageFile.replace("file://", "capacitor-asset://");
     
+    // Rewrite from device filepath to Capacitor filepath
+    // Result example: 
     // capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/63F50461-1A9D-4A8A-AD7C-FF5DE4DD204C/Documents/1563569873622.jpeg
-    console.log(this.webview.convertFileSrc(savedImageFile));
-
     this.photos.unshift({
       filepath: savedImageFile,
-      webviewPath: this.webview.convertFileSrc(savedImageFile)
+      webviewPath: Capacitor.convertFileSrc(savedImageFile)
     });
 
     // Cache all photo data for future retrieval
@@ -54,8 +53,6 @@ export class PhotoService {
 
   // Save picture to file on device
   async savePicture(cameraImage) {
-    const { Filesystem } = Plugins;
-
     // Read the file into its base64 version
     let readFile: FileReadResult;
     try {
