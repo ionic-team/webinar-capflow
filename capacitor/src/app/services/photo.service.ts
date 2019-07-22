@@ -4,9 +4,10 @@ import { File } from '@ionic-native/file/ngx';
 import { WebView } from '@ionic-native/ionic-webview/ngx';
 import { Storage } from '@ionic/storage';
 
-import { Plugins, FilesystemDirectory, FileReadResult, Filesystem } from '@capacitor/core';
+import { Plugins, FilesystemDirectory, FileReadResult } from '@capacitor/core';
 
 const PHOTO_STORAGE: string = "photos";
+const { Filesystem } = Plugins;
 
 @Injectable({
   providedIn: 'root'
@@ -54,7 +55,6 @@ export class PhotoService {
 
   // Save picture to file on device
   async savePicture(cameraImage) {
-    const { Filesystem } = Plugins;
 
     // Read the file into its base64 version
     let readFile: FileReadResult;
